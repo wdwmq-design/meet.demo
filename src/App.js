@@ -162,6 +162,12 @@ export default function App() {
   const [ambulanceDispatched, setAmbulanceDispatched] = useState(false);
   const [aiData, setAiData] = useState({ confidence: 0, severity: "Analyzing...", falseAlert: "N/A", injury: "N/A" });
   const [eta, setEta] = useState(null);
+  const speak = (msg) => {
+  const speech = new SpeechSynthesisUtterance(msg);
+  speech.rate = 1;
+  speech.pitch = 1;
+  window.speechSynthesis.speak(speech);
+};
   const [demoRunning, setDemoRunning] = useState(false);
   const [communityAlert, setCommunityAlert] = useState(false);
   const audioCtx = useRef(null);
@@ -266,16 +272,82 @@ export default function App() {
       addNotif("SCENE SECURED", "All units on-site — situation under control", "✅", "green");
     }, 16000);
   }, [phase, severity, addLog, addNotif]);
+const runDemo = useCallback(() => {
+  if (demoRunning || phase !== "idle") return;
 
-  const runDemo = useCallback(() => {
-    if (demoRunning || phase !== "idle") return;
-    setDemoRunning(true);
-    setSeverity("HIGH");
+  setDemoRunning(true);
+  setPhase("detecting");
+  addLog("🚨 Sudden impact detected!");
+
+  addLog("⚙️ AI analyzing sensor data...");
+  setAiData({ confidence: 10, severity: "Analyzing...", falseAlert: "Checking...", injury: "Assessing..." });
+
+  setTimeout(() => {
+    addLog("🧠 Validating crash pattern...");
+    setAiData({ confidence: 40, severity: "Validating...", falseAlert: "Checking...", injury: "Assessing..." });
+
     setTimeout(() => {
-      runSimulation("HIGH");
-      setTimeout(() => setDemoRunning(false), 17000);
-    }, 500);
-  }, [demoRunning, phase, runSimulation]);
+      addLog("📊 Calculating severity...");
+      setAiData({ confidence: 70, severity: "Processing...", falseAlert: "Checking...", injury: "Assessing..." });
+
+      setTimeout(() => {
+        const confidence = Math.floor(Math.random() * 20) + 80;
+
+        let severityLevel;
+        if (confidence > 90) severityLevel = "HIGH";
+        else if (confidence > 85) severityLevel = "MEDIUM";
+        else severityLevel = "LOW";
+
+        setAiData({ confidence, severity: severityLevel, falseAlert: "Negative", injury: severityLevel === "HIGH" ? "High Risk" : severityLevel === "MEDIUM" ? "Moderate Risk" : "Low Risk" });
+        setSeverity(severityLevel);
+        setPhase("confirmed");
+
+        addLog(`✅ Accident confirmed (${severityLevel})`);
+        addNotif("Accident Detected", `Severity: ${severityLevel}`, "🚨", "red");
+        speak("Accident detected. Emergency services have been notified.");
+        addLog("📡 Sending SOS to emergency services...");
+        addNotif("SOS Sent", "Location shared with ambulance & police", "📡", "blue");
+        addLog("📞 Calling ambulance...");
+
+        let progress = 0;
+        const interval = setInterval(() => {
+          progress = Math.min(progress + 20, 100);
+          setAmbulanceProgress(progress);
+
+          if (progress >= 100) {
+            clearInterval(interval);
+            setAmbulanceDispatched(true);
+            addLog("🚑 Ambulance dispatched successfully");
+            setEta("6 min");
+
+            let time = 6;
+            const etaInterval = setInterval(() => {
+              time = Math.max(time - 1, 0);
+              setEta(time > 0 ? `${time} min` : "Arrived");
+
+              if (time <= 0) {
+                clearInterval(etaInterval);
+                addLog("🚑 Ambulance reached location");
+              }
+            }, 2000);
+          }
+        }, 600);
+
+        setTimeout(() => {
+          setPoliceDispatched(true);
+          addLog("🚓 Police notified and dispatched");
+        }, 2000);
+
+        setTimeout(() => {
+          addLog("🏥 Hospital emergency team alerted");
+          setCommunityAlert(true);
+        }, 2500);
+
+        setDemoRunning(false);
+      }, 1200);
+    }, 1200);
+  }, 1200);
+}, [demoRunning, phase, addLog, addNotif]);
 
   const reset = () => {
     setPhase("idle");
@@ -389,10 +461,10 @@ export default function App() {
 
             {/* Simulate / Demo */}
             <button disabled={active} onClick={() => runSimulation()} style={{ ...S.btn("red"), justifyContent: "center", padding: 16, fontSize: 13, opacity: active ? 0.4 : 1, animation: !active ? "pulse 2s ease infinite" : "none" }}>
-              🚨 SIMULATE ACCIDENT
+              🚨 TRIGGER AI CRASH DETECTION
             </button>
             <button disabled={active || demoRunning} onClick={runDemo} style={{ ...S.btn("blue"), justifyContent: "center", padding: 12, opacity: active ? 0.4 : 1 }}>
-              ▶ DEMO MODE
+              ▶ AI LIVE SIMULATION
             </button>
             {phase === "resolved" && (
               <button onClick={reset} style={{ ...S.btn("green"), justifyContent: "center", padding: 12 }}>
