@@ -1,4 +1,6 @@
-import { useState,  useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
+import L from "leaflet";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 const pad = (n) => String(n).padStart(2, "0");
@@ -162,6 +164,47 @@ export default function App() {
   const [ambulanceDispatched, setAmbulanceDispatched] = useState(false);
   const [aiData, setAiData] = useState({ confidence: 0, severity: "Analyzing...", falseAlert: "N/A", injury: "N/A" });
   const [eta, setEta] = useState(null);
+  const [position, setPosition] = useState([18.5204, 73.8567]);
+  const destination = [18.5310, 73.8440];
+  const [blink, setBlink] = useState(true);
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    setBlink((prev) => !prev);
+  }, 500);
+
+  return () => clearInterval(interval);
+}, []);
+
+useEffect(() => {
+  const moveInterval = setInterval(() => {
+    setPosition((prev) => {
+      const lat = prev[0];
+      const lng = prev[1];
+
+      const newLat = lat + (destination[0] - lat) * 0.05;
+      const newLng = lng + (destination[1] - lng) * 0.05;
+
+      return [newLat, newLng];
+    });
+  }, 500);
+
+  return () => clearInterval(moveInterval);
+}, []);
+
+
+
+  const ambulanceIcon = new L.Icon({
+  iconUrl: "https://cdn-icons-png.flaticon.com/512/2967/2967350.png",
+ iconSize: [60, 60],
+iconAnchor: [30, 60],
+popupAnchor: [0, -60],
+});
+  const [user, setUser] = useState({
+  name: "",
+  phone: ""
+});
+
   const speak = (msg) => {
   const speech = new SpeechSynthesisUtterance(msg);
   speech.rate = 1;
@@ -273,6 +316,11 @@ export default function App() {
     }, 16000);
   }, [phase, severity, addLog, addNotif]);
 const runDemo = useCallback(() => {
+  if (!user.name || !user.phone) {
+    alert("Please enter name and phone number");
+    return;
+  }
+
   if (demoRunning || phase !== "idle") return;
 
   setDemoRunning(true);
@@ -298,34 +346,42 @@ const runDemo = useCallback(() => {
         else if (confidence > 85) severityLevel = "MEDIUM";
         else severityLevel = "LOW";
 
-        setAiData({ confidence, severity: severityLevel, falseAlert: "Negative", injury: severityLevel === "HIGH" ? "High Risk" : severityLevel === "MEDIUM" ? "Moderate Risk" : "Low Risk" });
+        setAiData({
+          confidence,
+          severity: severityLevel,
+          falseAlert: "Negative",
+          injury: severityLevel === "HIGH" ? "High Risk" : severityLevel === "MEDIUM" ? "Moderate Risk" : "Low Risk"
+        });
         setSeverity(severityLevel);
         setPhase("confirmed");
 
         addLog(`✅ Accident confirmed (${severityLevel})`);
         addNotif("Accident Detected", `Severity: ${severityLevel}`, "🚨", "red");
+        addLog(`📡 SOS sent for ${user.name} (${user.phone})`);
         speak("Accident detected. Emergency services have been notified.");
+
         addLog("📡 Sending SOS to emergency services...");
         addNotif("SOS Sent", "Location shared with ambulance & police", "📡", "blue");
         addLog("📞 Calling ambulance...");
 
         let progress = 0;
-        const interval = setInterval(() => {
+        const progressInterval = setInterval(() => {
           progress = Math.min(progress + 20, 100);
           setAmbulanceProgress(progress);
+          setPosition((prev) => [prev[0] + 0.001, prev[1] + 0.001]);
 
           if (progress >= 100) {
-            clearInterval(interval);
+            clearInterval(progressInterval);
             setAmbulanceDispatched(true);
             addLog("🚑 Ambulance dispatched successfully");
             setEta("6 min");
 
-            let time = 6;
+            let etaRemaining = 6;
             const etaInterval = setInterval(() => {
-              time = Math.max(time - 1, 0);
-              setEta(time > 0 ? `${time} min` : "Arrived");
+              etaRemaining = Math.max(etaRemaining - 1, 0);
+              setEta(etaRemaining > 0 ? `${etaRemaining} min` : "Arrived");
 
-              if (time <= 0) {
+              if (etaRemaining <= 0) {
                 clearInterval(etaInterval);
                 addLog("🚑 Ambulance reached location");
               }
@@ -343,11 +399,13 @@ const runDemo = useCallback(() => {
           setCommunityAlert(true);
         }, 2500);
 
-        setDemoRunning(false);
+        setTimeout(() => {
+          setDemoRunning(false);
+        }, 3200);
       }, 1200);
     }, 1200);
   }, 1200);
-}, [demoRunning, phase, addLog, addNotif]);
+}, [demoRunning, phase, addLog, addNotif, user]);
 
   const reset = () => {
     setPhase("idle");
@@ -385,6 +443,31 @@ const runDemo = useCallback(() => {
   };
 
   return (
+     <>
+<div style={{ padding: 10, background: "black" }}>
+  <input
+    placeholder="Enter Name"
+    value={user.name}
+    onChange={(e) => {
+      setUser({
+        ...user,
+        name: e.target.value
+      });
+    }}
+    style={{ marginRight: 10, padding: 5 }}
+  />
+  <input
+    placeholder="Enter Phone Number"
+    value={user.phone}
+    onChange={(e) => {
+      setUser({
+        ...user,
+        phone: e.target.value
+      });
+    }}
+    style={{ padding: 5 }}
+  />
+</div>
     <div style={S.app}>
       <style>{`
         @keyframes slideIn { from { transform: translateX(120%); opacity: 0 } to { transform: translateX(0); opacity: 1 } }
@@ -477,12 +560,33 @@ const runDemo = useCallback(() => {
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
 
             {/* Map */}
-            <div style={{ ...S.card("#00ff88"), height: 280 }}>
-              <div style={S.cardTitle}><span>🗺</span> Live Map — Pune Metropolitan Area</div>
-              <div style={{ height: "calc(100% - 28px)" }}>
-                <MapPanel active={active} ambulanceProgress={ambulanceProgress} />
-              </div>
-            </div>
+            <div style={{ height: 300, marginTop: 10 }}>
+  <MapContainer
+   center={position}
+    zoom={13}
+    style={{ height: "100%", width: "100%" }}
+  >
+    <TileLayer
+      attribution='&copy; OpenStreetMap contributors'
+      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+    />
+
+    
+
+
+
+
+{blink && (
+  <Marker position={position} icon={ambulanceIcon}>
+    <Popup>🚑 Ambulance Moving</Popup>
+  </Marker>
+)}
+<Polyline positions={[position, destination]} color="red" />
+ <Marker position={destination}>
+    <Popup>🚨 Accident Location</Popup>
+  </Marker>
+</MapContainer>
+</div>
 
             {/* Stats row */}
             <div style={S.grid3}>
@@ -685,5 +789,7 @@ const runDemo = useCallback(() => {
         <span style={{ color: "#00ff8844" }}>{now()} IST ● PUNE TRAFFIC NETWORK</span>
       </div>
     </div>
+    </>
   );
+
 }
