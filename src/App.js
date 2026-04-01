@@ -514,7 +514,7 @@ const runDemo = useCallback(() => {
         <div style={S.header}>
         <SirenIcon active={phase === "confirmed" || phase === "responding"} />
         <div>
-          <div style={S.title}>AI Smart Accident Detection & Emergency Response</div>
+          <div style={S.title}>SAFEDRIVE-AI</div>
           <div style={{ fontSize: 10, color: "#2a6a40", letterSpacing: 1 }}>SYSTEM v2.4.1 — PUNE TRAFFIC CONTROL NETWORK</div>
         </div>
 
@@ -820,7 +820,7 @@ const runDemo = useCallback(() => {
 
       {/* footer */}
       <div style={{ background: "#060d08", borderTop: "1px solid #0f2015", padding: "6px 24px", display: "flex", justifyContent: "space-between", fontSize: 10, color: "#1a4a22" }}>
-        <span>AI SMART ACCIDENT DETECTION SYSTEM — SPPU PROTOTYPE</span>
+        <span>SAFEDRIVE-AI — SPPU PROTOTYPE</span>
         <span style={{ color: "#00ff8844" }}>{now()} IST ● PUNE TRAFFIC NETWORK</span>
       </div>
       </div>
