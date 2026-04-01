@@ -1,13 +1,17 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
 import L from "leaflet";
+import { supabase } from "./supabase";
+import Drowsiness from "./Drowsiness";
 
-// ── helpers ──────────────────────────────────────────────────────────────────
 const pad = (n) => String(n).padStart(2, "0");
 const now = () => {
   const d = new Date();
   return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
+
+const destination = [18.5310, 73.8440];
 
 function beep(ctx) {
   if (!ctx) return;
@@ -158,6 +162,7 @@ export default function App() {
   const [phase, setPhase] = useState("idle"); // idle | detecting | confirmed | responding | resolved
   const [severity, setSeverity] = useState("HIGH");
   const [logs, setLogs] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [notifs, setNotifs] = useState([]);
   const [ambulanceProgress, setAmbulanceProgress] = useState(0);
   const [policeDispatched, setPoliceDispatched] = useState(false);
@@ -165,8 +170,29 @@ export default function App() {
   const [aiData, setAiData] = useState({ confidence: 0, severity: "Analyzing...", falseAlert: "N/A", injury: "N/A" });
   const [eta, setEta] = useState(null);
   const [position, setPosition] = useState([18.5204, 73.8567]);
-  const destination = [18.5310, 73.8440];
   const [blink, setBlink] = useState(true);
+  const [isDrowsy, setIsDrowsy] = useState(false);
+  useEffect(() => {
+  const channel = supabase
+    .channel('realtime messages')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+      },
+      (payload) => {
+        console.log("New message:", payload);
+        setMessages((prev) => [...prev, payload.new]);
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, []);
 
 useEffect(() => {
   const interval = setInterval(() => {
@@ -315,6 +341,7 @@ popupAnchor: [0, -60],
       addNotif("SCENE SECURED", "All units on-site — situation under control", "✅", "green");
     }, 16000);
   }, [phase, severity, addLog, addNotif]);
+
 const runDemo = useCallback(() => {
   if (!user.name || !user.phone) {
     alert("Please enter name and phone number");
@@ -468,7 +495,7 @@ const runDemo = useCallback(() => {
     style={{ padding: 5 }}
   />
 </div>
-    <div style={S.app}>
+    <div style={{ ...S.app, flexDirection: "row" }}>
       <style>{`
         @keyframes slideIn { from { transform: translateX(120%); opacity: 0 } to { transform: translateX(0); opacity: 1 } }
         @keyframes ping { 0%,100% { transform: scale(1); opacity:1 } 50% { transform: scale(1.8); opacity:0 } }
@@ -482,8 +509,9 @@ const runDemo = useCallback(() => {
       {/* NOTIFICATIONS */}
       <NotifPopup notifs={notifs} onDismiss={dismissNotif} />
 
-      {/* HEADER */}
-      <div style={S.header}>
+      <div style={{ display: "flex", width: "100%", minHeight: "100vh", flexDirection: "column" }}>
+        {/* HEADER */}
+        <div style={S.header}>
         <SirenIcon active={phase === "confirmed" || phase === "responding"} />
         <div>
           <div style={S.title}>AI Smart Accident Detection & Emergency Response</div>
@@ -523,6 +551,13 @@ const runDemo = useCallback(() => {
                     <div style={{ fontSize: 13, color: "#c8e6c9", fontWeight: 600 }}>{v}</div>
                   </div>
                 ))}
+                <h3 style={{ marginTop: 15 }}>📢 Live Alerts</h3>
+
+{messages.map((msg, i) => (
+  <p key={i} style={{ fontSize: "12px", color: "#00ff88" }}>
+    {msg.text}
+  </p>
+))}
                 <div>
                   <div style={{ fontSize: 10, color: "#4a7a55", textTransform: "uppercase", letterSpacing: 1 }}>Impact Severity</div>
                   <Badge label={active ? severity : "NONE"} color={active ? sevColor : "gray"} />
@@ -787,6 +822,12 @@ const runDemo = useCallback(() => {
       <div style={{ background: "#060d08", borderTop: "1px solid #0f2015", padding: "6px 24px", display: "flex", justifyContent: "space-between", fontSize: 10, color: "#1a4a22" }}>
         <span>AI SMART ACCIDENT DETECTION SYSTEM — SPPU PROTOTYPE</span>
         <span style={{ color: "#00ff8844" }}>{now()} IST ● PUNE TRAFFIC NETWORK</span>
+      </div>
+      </div>
+
+      {/* RIGHT SIDEBAR - CAMERA */}
+      <div style={{ width: "20%", background: "#111", color: "white", padding: "10px", borderLeft: "1px solid #1a3a20", overflow: "auto" }}>
+        <Drowsiness setIsDrowsy={setIsDrowsy} isDrowsy={isDrowsy} />
       </div>
     </div>
     </>
