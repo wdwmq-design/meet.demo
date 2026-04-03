@@ -1,3 +1,8 @@
+
+
+
+
+
 import React, { useEffect, useRef, useState } from "react";
 import * as faceapi from "@vladmandic/face-api";
 import { supabase } from "./supabase";
@@ -8,7 +13,16 @@ export default function Drowsiness({ setIsDrowsy, isDrowsy }) {
   const audioRef = useRef(null);
   const alarmTimeoutRef = useRef(null);
   const isAlarmPlaying = useRef(false);
-  const closedFrames = useRef(0);
+  const emergencyTriggeredRef = useRef(false);
+  const [closedFrames, setClosedFrames] = useState(0);
+
+  const [riskScore, setRiskScore] = useState(0);
+
+  const [riskLevel, setRiskLevel] = useState("LOW");
+
+  const [events, setEvents] = useState([]);
+
+  const [highRiskCount, setHighRiskCount] = useState(0);
 
   useEffect(() => {
     console.log("[Drowsiness] useEffect mount");
@@ -68,62 +82,104 @@ export default function Drowsiness({ setIsDrowsy, isDrowsy }) {
 
         if (detections.length > 0) {
           const landmarks = detections[0].landmarks;
+          const nose = landmarks.getNose();
+
+          // take top and bottom nose points
+          const noseTop = nose[0];
+          const noseBottom = nose[3];
+
+          // calculate vertical difference
+          const headTilt = Math.abs(noseTop.y - noseBottom.y);
+
+          // debug
+          console.log("Head tilt:", headTilt);
           const leftEye = landmarks.getLeftEye();
           const rightEye = landmarks.getRightEye();
 
           const leftEyeHeight = leftEye[1].y - leftEye[5].y;
           const rightEyeHeight = rightEye[1].y - rightEye[5].y;
 
+          let score = 0;
+
+          // 👀 Eye closure
           if (leftEyeHeight < 5 && rightEyeHeight < 5) {
-            closedFrames.current += 1;
+            setClosedFrames(prev => prev + 1);
+            score += 3;
           } else {
-            closedFrames.current = 0;
-            setIsDrowsy(false);
-            
-            if (alarmTimeoutRef.current) {
-              clearTimeout(alarmTimeoutRef.current);
-              alarmTimeoutRef.current = null;
+            setClosedFrames(0);
+          }
+
+          // ⏱️ Duration factor
+          if (closedFrames > 3) {
+            score += 3;
+          }
+
+          // 🤯 Head tilt detection
+          if (headTilt < 20) {
+            score += 2;
+          }
+
+          // 🔥 Set risk score
+          setRiskScore(score);
+
+          console.log("Risk Score:", score);
+
+          if (score >= 6) {
+            setRiskLevel("HIGH");
+          } else if (score >= 3) {
+            setRiskLevel("MEDIUM");
+          } else {
+            setRiskLevel("LOW");
+          }
+
+          // 🚨 Trigger alert
+          if (score >= 5) {
+            setIsDrowsy(true);
+
+            // 🚑 SMART EMERGENCY TRIGGER COUNTER
+            setHighRiskCount(prev => {
+              const nextCount = prev + 1;
+
+              if (nextCount >= 3 && !emergencyTriggeredRef.current) {
+                emergencyTriggeredRef.current = true;
+                console.log("🚑 EMERGENCY TRIGGERED");
+
+                // optional: send to supabase
+                (async () => {
+                  try {
+                    await supabase.from("messages").insert([
+                      {
+                        text: "🚑 Emergency: Driver in critical condition"
+                      }
+                    ]);
+                  } catch (err) {
+                    console.error("[Drowsiness] emergency insert failed", err);
+                  }
+                })();
+              }
+
+              return nextCount;
+            });
+
+            // 🔥 STORE EVENT
+            setEvents(prev => [
+              ...prev,
+              {
+                time: new Date().toLocaleTimeString(),
+                score: score,
+                level: "HIGH"
+              }
+            ]);
+
+            if (audioRef.current) {
+              audioRef.current.play();
             }
-            
+          } else {
+            setIsDrowsy(false);
+
             if (audioRef.current) {
               audioRef.current.pause();
               audioRef.current.currentTime = 0;
-            }
-          }
-
-          // if eyes closed for some time
-          if (closedFrames.current > 5) {
-            if (!isDrowsy) {
-              setIsDrowsy(true);
-
-              try {
-                const { error } = await supabase.from("messages").insert([
-                  { text: "🚨 Driver Drowsy Detected!" }
-                ]);
-
-                if (error) {
-                  console.error("[Drowsiness] Supabase insert failed", error);
-                } else {
-                  console.log("[Drowsiness] Supabase alert inserted");
-                }
-              } catch (err) {
-                console.error("[Drowsiness] Supabase insert exception", err);
-              }
-            }
-
-            if (!isAlarmPlaying.current && audioRef.current) {
-              isAlarmPlaying.current = true;
-              audioRef.current.currentTime = 0;
-              audioRef.current.play();
-
-              alarmTimeoutRef.current = setTimeout(() => {
-                if (audioRef.current) {
-                  audioRef.current.pause();
-                  audioRef.current.currentTime = 0;
-                }
-                isAlarmPlaying.current = false;
-                alarmTimeoutRef.current = null;
-              }, 3000);
             }
           }
         }
@@ -137,6 +193,25 @@ export default function Drowsiness({ setIsDrowsy, isDrowsy }) {
     <div>
       <h3>Driver Monitoring</h3>
       <video ref={videoRef} autoPlay muted width="300" />
+      <div style={{
+        marginTop: "10px",
+        color: "yellow",
+        fontWeight: "bold"
+      }}>
+        Risk Score: {riskScore}
+      </div>
+      <div style={{
+        marginTop: "5px",
+        fontWeight: "bold",
+        color:
+          riskLevel === "HIGH"
+            ? "red"
+            : riskLevel === "MEDIUM"
+            ? "orange"
+            : "green"
+      }}>
+        Risk Level: {riskLevel}
+      </div>
       <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" />
       {isDrowsy && (
         <div style={{
@@ -150,6 +225,33 @@ export default function Drowsiness({ setIsDrowsy, isDrowsy }) {
           ⚠️ DRIVER DROWSY ALERT 🚨
         </div>
       )}
+
+      <div style={{ marginTop: "15px" }}>
+        <h4>Driver Report</h4>
+
+        {events.slice(-5).map((e, i) => (
+          <div key={i} style={{
+            fontSize: "12px",
+            marginBottom: "5px",
+            color: "#ccc"
+          }}>
+            {e.time} — Score: {e.score} — {e.level}
+          </div>
+        ))}
+
+        {highRiskCount >= 3 && (
+          <div style={{
+            marginTop: "10px",
+            background: "darkred",
+            color: "white",
+            padding: "10px",
+            textAlign: "center",
+            fontWeight: "bold"
+          }}>
+            🚑 Emergency Triggered — Assistance Required
+          </div>
+        )}
+      </div>
     </div>
   );
 }
