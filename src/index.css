@@ -1,13 +1,124 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+:root {
+  /* Cyber Dark Theme Tokens */
+  --bg-deep: #050a06;
+  --bg-panel: rgba(10, 26, 14, 0.4);
+  --bg-panel-hover: rgba(15, 38, 20, 0.5);
+  
+  --border-neon: rgba(0, 255, 136, 0.15);
+  --border-neon-red: rgba(255, 51, 51, 0.2);
+  --border-neon-blue: rgba(68, 136, 255, 0.2);
+  --border-neon-yellow: rgba(255, 204, 0, 0.2);
+
+  --color-green: #00ff88;
+  --color-green-glow: rgba(0, 255, 136, 0.4);
+  --color-red: #ff3333;
+  --color-red-bright: #ff4444;
+  --color-blue: #4488ff;
+  --color-yellow: #ffcc00;
+  --color-text-main: #c8e6c9;
+  --color-text-dim: #4a7a55;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-deep);
+  color: var(--color-text-main);
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(0, 255, 136, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 85% 30%, rgba(68, 136, 255, 0.03) 0%, transparent 50%);
+  overflow-x: hidden;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: 'JetBrains Mono', source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: #1a4a22;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-green);
+}
+
+/* Glass Panel Base */
+.glass-panel {
+  background: var(--bg-panel);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  box-shadow: 0 8px 32px 0 rgba(0, 255, 136, 0.02);
+  border-radius: 16px;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.glass-panel:hover {
+  box-shadow: 0 12px 40px 0 rgba(0, 255, 136, 0.05);
+  background: var(--bg-panel-hover);
+  border: 1px solid var(--border-neon);
+}
+
+/* Base Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(120%); opacity: 0; filter: blur(4px); }
+  to { transform: translateX(0); opacity: 1; filter: blur(0); }
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 15px rgba(255, 51, 51, 0.2); }
+  50% { box-shadow: 0 0 35px rgba(255, 51, 51, 0.6); }
+  100% { box-shadow: 0 0 15px rgba(255, 51, 51, 0.2); }
+}
+
+@keyframes radarSweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes flashNeon {
+  0%, 100% { opacity: 1; text-shadow: 0 0 10px var(--color-red-bright); }
+  50% { opacity: 0.3; text-shadow: none; }
+}
+
+@keyframes radarPing {
+  0% { transform: scale(0.5); opacity: 0.8; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* Base button styles with hover */
+.cyber-btn {
+  position: relative;
+  overflow: hidden;
+}
+.cyber-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+.cyber-btn:hover::before {
+  left: 100%;
+}
+.cyber-btn:active {
+  transform: scale(0.96);
 }

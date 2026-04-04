@@ -31,53 +31,65 @@ function beep(ctx) {
 // ── tiny SVG map ──────────────────────────────────────────────────────────────
 function MapPanel({ active, ambulanceProgress }) {
   return (
-    <div style={{ position: "relative", width: "100%", height: "100%", background: "#0d1a0f", borderRadius: 8, overflow: "hidden" }}>
+    <div style={{ position: "relative", width: "100%", height: "100%", background: "transparent", borderRadius: 16, overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at center, rgba(0,255,136,0.1), transparent)", pointerEvents: "none" }} />
       {/* grid */}
       <svg width="100%" height="100%" style={{ position: "absolute", inset: 0 }}>
         <defs>
           <pattern id="g" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1a3020" strokeWidth="0.8" />
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0,255,136,0.06)" strokeWidth="1" />
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#g)" />
 
+        {/* radar pulse */}
+        {active && (
+          <circle cx="52%" cy="48%" r="100" fill="none" stroke="rgba(255,68,68,0.2)" strokeWidth="1">
+            <animate attributeName="r" values="0;200" dur="2s" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="1;0" dur="2s" repeatCount="indefinite" />
+          </circle>
+        )}
+
         {/* roads */}
-        <line x1="0" y1="50%" x2="100%" y2="50%" stroke="#1e3a22" strokeWidth="18" />
-        <line x1="50%" y1="0" x2="50%" y2="100%" stroke="#1e3a22" strokeWidth="14" />
-        <line x1="20%" y1="0" x2="80%" y2="100%" stroke="#1a2e1c" strokeWidth="10" />
+        <line x1="0" y1="50%" x2="100%" y2="50%" stroke="rgba(20,40,25,0.7)" strokeWidth="18" />
+        <line x1="50%" y1="0" x2="50%" y2="100%" stroke="rgba(20,40,25,0.7)" strokeWidth="14" />
+        <line x1="20%" y1="0" x2="80%" y2="100%" stroke="rgba(15,30,20,0.6)" strokeWidth="10" />
 
         {/* road markings */}
         {[10, 25, 40, 55, 70, 85].map((x) => (
-          <line key={x} x1={`${x}%`} y1="calc(50% - 2px)" x2={`${x + 5}%`} y2="calc(50% - 2px)" stroke="#2a4a2d" strokeWidth="2" strokeDasharray="8,8" />
+          <line key={x} x1={`${x}%`} y1="calc(50% - 2px)" x2={`${x + 5}%`} y2="calc(50% - 2px)" stroke="rgba(0,255,136,0.4)" strokeWidth="2" strokeDasharray="8,8" />
         ))}
 
         {/* Hospital marker */}
         <g transform="translate(78, 60)">
-          <circle r="14" fill="#0a4a2a" stroke="#00ff88" strokeWidth="2" />
-          <text x="-5" y="5" fill="#00ff88" fontSize="14" fontWeight="bold">H</text>
+          <circle r="14" fill="rgba(0,50,20,0.8)" stroke="var(--color-green)" strokeWidth="2" style={{ filter: "drop-shadow(0 0 8px var(--color-green-glow))" }} />
+          <text x="-5" y="5" fill="var(--color-green)" fontSize="14" fontWeight="bold">H</text>
         </g>
 
         {/* Accident marker */}
         {active && (
           <g transform="translate(52%, 48%)">
-            <circle r="16" fill="#ff000033" stroke="#ff0000" strokeWidth="2">
-              <animate attributeName="r" values="14;22;14" dur="1s" repeatCount="indefinite" />
-              <animate attributeName="opacity" values="1;0.4;1" dur="1s" repeatCount="indefinite" />
+            <circle r="16" fill="rgba(255,0,0,0.2)" stroke="var(--color-red-bright)" strokeWidth="2" style={{ filter: "drop-shadow(0 0 10px rgba(255,0,0,0.5))" }}>
+              <animate attributeName="r" values="14;24;14" dur="1.2s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="1;0.4;1" dur="1.2s" repeatCount="indefinite" />
             </circle>
-            <text x="-8" y="6" fill="#ff4444" fontSize="18">⚠</text>
+            <text x="-8" y="6" fill="#fff" fontSize="18">⚠</text>
           </g>
         )}
 
         {/* Ambulance route */}
         {active && ambulanceProgress > 0 && (
           <>
-            <line x1="78" y1="60" x2="52%" y2="48%" stroke="#00ff88" strokeWidth="2" strokeDasharray="6,4" opacity="0.6" />
+            <line x1="78" y1="60" x2="52%" y2="48%" stroke="var(--color-green)" strokeWidth="2" strokeDasharray="6,4" opacity="0.6">
+              <animate attributeName="stroke-dashoffset" values="20;0" dur="1s" repeatCount="indefinite" />
+            </line>
             <circle
               cx={`calc(78px + (52% - 78px) * ${ambulanceProgress / 100})`}
               cy={`calc(60px + (48% - 60px) * ${ambulanceProgress / 100})`}
-              r="8" fill="#00ff88"
+              r="8" fill="var(--color-green)"
+              style={{ filter: "drop-shadow(0 0 10px var(--color-green))" }}
             >
-              <animate attributeName="opacity" values="1;0.6;1" dur="0.5s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="1;0.6;1" dur="0.3s" repeatCount="indefinite" />
             </circle>
             <text
               x={`calc(78px + (52% - 78px) * ${ambulanceProgress / 100} - 6px)`}
@@ -89,18 +101,20 @@ function MapPanel({ active, ambulanceProgress }) {
 
         {/* Police route */}
         {active && ambulanceProgress > 20 && (
-          <line x1="10%" y1="90%" x2="52%" y2="48%" stroke="#4488ff" strokeWidth="2" strokeDasharray="6,4" opacity="0.6" />
+          <line x1="10%" y1="90%" x2="52%" y2="48%" stroke="var(--color-blue)" strokeWidth="2" strokeDasharray="6,4" opacity="0.6">
+            <animate attributeName="stroke-dashoffset" values="20;0" dur="1s" repeatCount="indefinite" />
+          </line>
         )}
 
         {/* labels */}
-        <text x="68" y="90" fill="#00ff88" fontSize="10" fontFamily="monospace">CITY HOSPITAL</text>
-        <text x="8%" y="95%" fill="#4488ff" fontSize="10" fontFamily="monospace">POLICE HQ</text>
-        {active && <text x="54%" y="46%" fill="#ff4444" fontSize="10" fontFamily="monospace">ACCIDENT</text>}
-        <text x="2%" y="4%" fill="#2a5a35" fontSize="9" fontFamily="monospace">PUNE - BANGALORE HWY</text>
+        <text x="68" y="90" fill="var(--color-green)" fontSize="10" fontFamily="'JetBrains Mono', monospace" style={{ filter: "drop-shadow(0 0 4px var(--color-green-glow))" }}>CITY HOSPITAL</text>
+        <text x="8%" y="95%" fill="var(--color-blue)" fontSize="10" fontFamily="'JetBrains Mono', monospace">POLICE HQ</text>
+        {active && <text x="54%" y="46%" fill="var(--color-red-bright)" fontSize="10" fontFamily="'JetBrains Mono', monospace" style={{ filter: "drop-shadow(0 0 4px rgba(255,0,0,0.5))" }}>ACCIDENT</text>}
+        <text x="2%" y="4%" fill="var(--color-text-dim)" fontSize="9" fontFamily="'JetBrains Mono', monospace">PUNE - BANGALORE HWY</text>
       </svg>
 
       {/* compass */}
-      <div style={{ position: "absolute", top: 8, right: 8, width: 28, height: 28, borderRadius: "50%", border: "1px solid #2a4a35", display: "flex", alignItems: "center", justifyContent: "center", background: "#0a1a0e", color: "#2a6a40", fontSize: 11, fontFamily: "monospace" }}>N</div>
+      <div style={{ position: "absolute", top: 12, right: 12, width: 32, height: 32, borderRadius: "50%", border: "1px solid rgba(0,255,136,0.3)", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,255,136,0.05)", color: "var(--color-green)", fontSize: 11, fontFamily: "monospace", backdropFilter: "blur(4px)" }}>N</div>
     </div>
   );
 }
@@ -108,22 +122,26 @@ function MapPanel({ active, ambulanceProgress }) {
 // ── notification popup ────────────────────────────────────────────────────────
 function NotifPopup({ notifs, onDismiss }) {
   return (
-    <div style={{ position: "fixed", top: 20, right: 20, zIndex: 999, display: "flex", flexDirection: "column", gap: 8, maxWidth: 300 }}>
+    <div style={{ position: "fixed", top: 20, right: 20, zIndex: 9999, display: "flex", flexDirection: "column", gap: 12, maxWidth: 320 }}>
       {notifs.map((n) => (
-        <div key={n.id} style={{
-          background: n.color === "red" ? "#1a0000" : n.color === "green" ? "#001a0a" : "#0a0a1a",
-          border: `1px solid ${n.color === "red" ? "#ff3333" : n.color === "green" ? "#00ff88" : "#4488ff"}`,
-          borderRadius: 8, padding: "10px 14px", color: "#fff", fontSize: 13,
-          boxShadow: `0 0 20px ${n.color === "red" ? "#ff000044" : n.color === "green" ? "#00ff8844" : "#4488ff44"}`,
-          animation: "slideIn 0.3s ease",
-          display: "flex", gap: 10, alignItems: "flex-start"
+        <div key={n.id} className="glass-panel" style={{
+          background: n.color === "red" ? "rgba(40,0,0,0.85)" : n.color === "green" ? "rgba(0,30,10,0.85)" : "rgba(0,10,40,0.85)",
+          border: `1px solid ${n.color === "red" ? "var(--color-red-bright)" : n.color === "green" ? "var(--color-green)" : "var(--color-blue)"}`,
+          padding: "16px 20px", color: "#fff", fontSize: 14,
+          boxShadow: `0 8px 32px ${n.color === "red" ? "rgba(255,0,0,0.3)" : n.color === "green" ? "rgba(0,255,136,0.2)" : "rgba(68,136,255,0.2)"}`,
+          animation: "slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+          display: "flex", gap: 14, alignItems: "flex-start",
+          position: "relative", overflow: "hidden"
         }}>
-          <span style={{ fontSize: 20 }}>{n.icon}</span>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: 1, color: n.color === "red" ? "#ff4444" : n.color === "green" ? "#00ff88" : "#4488ff", marginBottom: 3 }}>{n.title}</div>
-            <div style={{ color: "#ccc", fontSize: 12 }}>{n.msg}</div>
+          {/* Animated glow background */}
+          <div style={{ position: "absolute", top: 0, left: "-50%", width: "200%", height: "100%", background: `linear-gradient(90deg, transparent, ${n.color === "red" ? "rgba(255,51,51,0.2)" : "rgba(0,255,136,0.1)"}, transparent)`, animation: "radarSweep 3s linear infinite" }} />
+          
+          <span style={{ fontSize: 24, zIndex: 1 }}>{n.icon}</span>
+          <div style={{ zIndex: 1, flex: 1 }}>
+            <div style={{ fontWeight: 800, fontSize: 12, textTransform: "uppercase", letterSpacing: 1.5, color: n.color === "red" ? "var(--color-red-bright)" : n.color === "green" ? "var(--color-green)" : "var(--color-blue)", marginBottom: 4 }}>{n.title}</div>
+            <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, lineHeight: 1.4 }}>{n.msg}</div>
           </div>
-          <button onClick={() => onDismiss(n.id)} style={{ marginLeft: "auto", background: "none", border: "none", color: "#666", cursor: "pointer", fontSize: 16, lineHeight: 1 }}>×</button>
+          <button onClick={() => onDismiss(n.id)} style={{ zIndex: 1, marginLeft: "auto", background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", fontSize: 20, lineHeight: 1, transition: "color 0.2s" }} onMouseOver={e => e.target.style.color = "#fff"} onMouseOut={e => e.target.style.color = "rgba(255,255,255,0.6)"}>×</button>
         </div>
       ))}
     </div>
@@ -133,24 +151,30 @@ function NotifPopup({ notifs, onDismiss }) {
 // ── siren icon ────────────────────────────────────────────────────────────────
 function SirenIcon({ active }) {
   return (
-    <div style={{ position: "relative", width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ position: "relative", width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center", background: active ? "rgba(255,0,0,0.1)" : "rgba(255,255,255,0.05)", borderRadius: "50%", border: `1px solid ${active ? "rgba(255,0,0,0.3)" : "transparent"}`, boxShadow: active ? "0 0 20px rgba(255,0,0,0.4)" : "none" }}>
       {active && (
         <>
-          <div style={{ position: "absolute", width: 40, height: 40, borderRadius: "50%", background: "#ff000033", animation: "ping 1s ease infinite" }} />
-          <div style={{ position: "absolute", width: 30, height: 30, borderRadius: "50%", background: "#ff000055", animation: "ping 1s ease infinite 0.3s" }} />
+          <div style={{ position: "absolute", width: 48, height: 48, borderRadius: "50%", background: "rgba(255,0,0,0.15)", animation: "radarPing 1.5s ease infinite" }} />
+          <div style={{ position: "absolute", width: 36, height: 36, borderRadius: "50%", background: "rgba(255,0,0,0.25)", animation: "radarPing 1.5s ease infinite 0.4s" }} />
         </>
       )}
-      <span style={{ fontSize: 24, zIndex: 1, animation: active ? "flash 0.5s ease infinite" : "none" }}>🚨</span>
+      <span style={{ fontSize: 26, zIndex: 1, animation: active ? "flashNeon 0.8s ease infinite" : "none", filter: active ? "drop-shadow(0 0 8px red)" : "none" }}>🚨</span>
     </div>
   );
 }
 
 // ── status badge ──────────────────────────────────────────────────────────────
 function Badge({ label, color }) {
-  const colors = { red: ["#ff3333", "#1a0000"], green: ["#00ff88", "#001a0a"], yellow: ["#ffcc00", "#1a1400"], blue: ["#4488ff", "#00081a"], gray: ["#888", "#111"] };
-  const [fg, bg] = colors[color] || colors.gray;
+  const colors = { 
+    red: ["var(--color-red-bright)", "rgba(50,0,0,0.5)", "rgba(255,68,68,0.3)"], 
+    green: ["var(--color-green)", "rgba(0,30,10,0.5)", "rgba(0,255,136,0.3)"], 
+    yellow: ["var(--color-yellow)", "rgba(40,30,0,0.5)", "rgba(255,204,0,0.3)"], 
+    blue: ["var(--color-blue)", "rgba(0,10,40,0.5)", "rgba(68,136,255,0.3)"], 
+    gray: ["#888", "rgba(30,30,30,0.5)", "rgba(100,100,100,0.3)"] 
+  };
+  const [fg, bg, border] = colors[color] || colors.gray;
   return (
-    <span style={{ background: bg, color: fg, border: `1px solid ${fg}`, borderRadius: 4, padding: "2px 8px", fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>
+    <span style={{ background: bg, color: fg, border: `1px solid ${border}`, borderRadius: "20px", padding: "4px 12px", fontSize: 11, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", backdropFilter: "blur(4px)", boxShadow: `0 0 10px ${border}` }}>
       {label}
     </span>
   );
@@ -451,27 +475,28 @@ const runDemo = useCallback(() => {
 
   // ── styles ──────────────────────────────────────────────────────────────────
   const S = {
-    app: { minHeight: "100vh", background: "#080d09", color: "#c8e6c9", fontFamily: "'Courier New', monospace", display: "flex", flexDirection: "column" },
-    header: { background: "#0a1a0e", borderBottom: "1px solid #1a4a22", padding: "12px 24px", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" },
-    title: { fontSize: 18, fontWeight: 700, color: "#00ff88", letterSpacing: 2, textTransform: "uppercase", flex: 1 },
-    nav: { display: "flex", gap: 4 },
-    navBtn: (s) => ({ background: screen === s ? "#0d3320" : "transparent", border: `1px solid ${screen === s ? "#00ff88" : "#2a4a35"}`, color: screen === s ? "#00ff88" : "#4a7a55", borderRadius: 6, padding: "6px 14px", cursor: "pointer", fontSize: 12, letterSpacing: 1, textTransform: "uppercase", transition: "all 0.2s" }),
-    body: { flex: 1, padding: 16, display: "grid", gap: 12 },
-    card: (glowColor) => ({ background: "#0a1a0e", border: `1px solid ${active && glowColor ? glowColor : "#1a3a20"}`, borderRadius: 10, padding: 16, boxShadow: active && glowColor ? `0 0 20px ${glowColor}22` : "none", transition: "all 0.5s" }),
-    cardTitle: { fontSize: 10, letterSpacing: 2, color: "#4a7a55", textTransform: "uppercase", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 },
-    stat: { fontSize: 24, fontWeight: 700, color: "#00ff88", lineHeight: 1 },
-    statLabel: { fontSize: 10, color: "#4a7a55", textTransform: "uppercase", letterSpacing: 1, marginTop: 2 },
-    btn: (color) => ({ background: color === "red" ? (active ? "#3a0000" : "#1a0000") : color === "green" ? "#001a0a" : color === "blue" ? "#00081a" : "#111", border: `1px solid ${color === "red" ? "#ff3333" : color === "green" ? "#00ff88" : color === "blue" ? "#4488ff" : "#333"}`, color: color === "red" ? "#ff4444" : color === "green" ? "#00ff88" : color === "blue" ? "#88aaff" : "#888", borderRadius: 7, padding: "10px 18px", cursor: "pointer", fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", transition: "all 0.2s", display: "flex", alignItems: "center", gap: 6 }),
-    logEntry: { fontSize: 11, color: "#a0c8a8", padding: "3px 0", borderBottom: "1px solid #0f2015", display: "flex", gap: 8 },
-    grid2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
-    grid3: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 },
-    progress: { height: 6, background: "#0f2015", borderRadius: 3, overflow: "hidden", marginTop: 6 },
-    progressFill: (pct, color) => ({ height: "100%", width: `${pct}%`, background: color, borderRadius: 3, transition: "width 0.3s" }),
+    app: { minHeight: "100vh", display: "flex", flexDirection: "column" },
+    header: { background: "rgba(6, 12, 8, 0.8)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.05)", padding: "16px 32px", display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap", position: "sticky", top: 0, zIndex: 100 },
+    title: { fontSize: 24, fontWeight: 800, color: "var(--color-green)", letterSpacing: 3, textTransform: "uppercase", flex: 1, textShadow: "0 0 20px var(--color-green-glow)" },
+    nav: { display: "flex", gap: 12 },
+    navBtn: (s) => ({ background: screen === s ? "rgba(0, 255, 136, 0.15)" : "transparent", border: `1px solid ${screen === s ? "var(--color-green)" : "rgba(255,255,255,0.1)"}`, color: screen === s ? "var(--color-green)" : "var(--color-text-dim)", borderRadius: "20px", padding: "8px 20px", cursor: "pointer", fontSize: 13, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)", boxShadow: screen === s ? "0 0 15px rgba(0,255,136,0.2)" : "none" }),
+    body: { flex: 1, padding: 24, display: "grid", gap: 24, animation: "fadeIn 0.6s ease" },
+    card: (glowColor) => ({ background: "var(--bg-panel)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: `1px solid ${active && glowColor ? glowColor : "rgba(255,255,255,0.04)"}`, borderRadius: 20, padding: 24, boxShadow: active && glowColor ? `0 0 30px ${glowColor}33` : "0 8px 32px rgba(0,0,0,0.4)", transition: "all 0.4s ease", position: "relative", overflow: "hidden" }),
+    cardTitle: { fontSize: 11, fontWeight: 700, letterSpacing: 2.5, color: "var(--color-text-dim)", textTransform: "uppercase", marginBottom: 16, display: "flex", alignItems: "center", gap: 10 },
+    stat: { fontSize: 32, fontWeight: 800, lineHeight: 1, textShadow: "0 2px 10px rgba(0,0,0,0.5)" },
+    statLabel: { fontSize: 11, color: "var(--color-text-dim)", textTransform: "uppercase", letterSpacing: 1.5, marginTop: 6, fontWeight: 600 },
+    btn: (color) => ({ className: "cyber-btn", background: color === "red" ? (active ? "rgba(80,0,0,0.8)" : "rgba(40,0,0,0.6)") : color === "green" ? "rgba(0,40,20,0.6)" : color === "blue" ? "rgba(0,10,40,0.6)" : "var(--bg-panel)", border: `1px solid ${color === "red" ? "var(--color-red-bright)" : color === "green" ? "var(--color-green)" : color === "blue" ? "var(--color-blue)" : "rgba(255,255,255,0.1)"}`, color: color === "red" ? "var(--color-red-bright)" : color === "green" ? "var(--color-green)" : color === "blue" ? "var(--color-blue)" : "var(--color-text-main)", borderRadius: 12, padding: "14px 24px", cursor: "pointer", fontSize: 13, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", transition: "all 0.3s ease", display: "flex", alignItems: "center", gap: 10, boxShadow: `0 4px 15px rgba(0,0,0,0.2)` }),
+    logEntry: { fontSize: 13, fontFamily: "'JetBrains Mono', monospace", color: "var(--color-text-main)", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.03)", display: "flex", gap: 12 },
+    grid2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 },
+    grid3: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 },
+    progress: { height: 8, background: "rgba(0,0,0,0.5)", borderRadius: 4, overflow: "hidden", marginTop: 8, border: "1px solid rgba(255,255,255,0.05)", boxShadow: "inset 0 2px 4px rgba(0,0,0,0.5)" },
+    progressFill: (pct, color) => ({ height: "100%", width: `${pct}%`, background: `linear-gradient(90deg, transparent, ${color})`, borderRadius: 4, transition: "width 0.5s cubic-bezier(0.4, 0, 0.2, 1)", boxShadow: `0 0 10px ${color}` }),
   };
 
   return (
      <>
-<div style={{ padding: 10, background: "black" }}>
+<div className="glass-panel" style={{ margin: "16px 24px", padding: "16px 24px", display: "flex", alignItems: "center", gap: 16, background: "rgba(10,26,14,0.6)", borderRadius: 12, border: "1px solid rgba(0,255,136,0.1)" }}>
+  <div style={{ fontSize: 13, fontWeight: "bold", color: "var(--color-green)", textTransform: "uppercase", letterSpacing: 2 }}><span style={{marginRight: 8}}>👤</span> User Setup</div>
   <input
     placeholder="Enter Name"
     value={user.name}
@@ -481,7 +506,7 @@ const runDemo = useCallback(() => {
         name: e.target.value
       });
     }}
-    style={{ marginRight: 10, padding: 5 }}
+    style={{ padding: "10px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(0,0,0,0.4)", color: "#fff", outline: "none", fontSize: 14, minWidth: 200, fontFamily: "var(--font-primary)" }}
   />
   <input
     placeholder="Enter Phone Number"
@@ -492,19 +517,11 @@ const runDemo = useCallback(() => {
         phone: e.target.value
       });
     }}
-    style={{ padding: 5 }}
+    style={{ padding: "10px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(0,0,0,0.4)", color: "#fff", outline: "none", fontSize: 14, minWidth: 200, fontFamily: "var(--font-primary)" }}
   />
 </div>
     <div style={{ ...S.app, flexDirection: "row" }}>
-      <style>{`
-        @keyframes slideIn { from { transform: translateX(120%); opacity: 0 } to { transform: translateX(0); opacity: 1 } }
-        @keyframes ping { 0%,100% { transform: scale(1); opacity:1 } 50% { transform: scale(1.8); opacity:0 } }
-        @keyframes flash { 0%,100% { opacity:1 } 50% { opacity:0.3 } }
-        @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.5 } }
-        @keyframes blink { 0%,100% { box-shadow: 0 0 20px #ff000066 } 50% { box-shadow: 0 0 40px #ff0000cc } }
-        * { box-sizing: border-box; margin: 0; padding: 0 }
-        ::-webkit-scrollbar { width: 4px } ::-webkit-scrollbar-track { background: #060d08 } ::-webkit-scrollbar-thumb { background: #1a4a22 }
-      `}</style>
+      {/* CSS is now in index.css */}
 
       {/* NOTIFICATIONS */}
       <NotifPopup notifs={notifs} onDismiss={dismissNotif} />
@@ -602,8 +619,9 @@ const runDemo = useCallback(() => {
     style={{ height: "100%", width: "100%" }}
   >
     <TileLayer
-      attribution='&copy; OpenStreetMap contributors'
-      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      attribution='&copy; CARTO'
+      url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+      className="map-tiles-dark"
     />
 
     
