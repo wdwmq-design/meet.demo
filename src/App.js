@@ -413,6 +413,87 @@ function EkgLine({ isDrowsy }) {
 // EDUCATION & SUSTAINABILITY PANELS (visual only)
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ── NEW: Drowsiness & Risk Zone Prevention Module ────────────────────────────
+function RiskPreventionPanel() {
+  const [drowsinessLevel, setDrowsinessLevel] = useState("Low");
+  const [zoneRisk, setZoneRisk] = useState("Safe");
+  const [showWarning, setShowWarning] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Simulate random values
+      const drowsyVals = ["Low", "Medium", "High"];
+      const zoneVals = ["Safe", "Risk Zone"];
+      const nextDrowsy = drowsyVals[Math.floor(Math.random() * drowsyVals.length)];
+      const nextZone = zoneVals[Math.floor(Math.random() * zoneVals.length)];
+      
+      setDrowsinessLevel(nextDrowsy);
+      setZoneRisk(nextZone);
+
+      if (nextDrowsy === "High" && nextZone === "Risk Zone") {
+        setShowWarning(true);
+        setTimeout(() => setShowWarning(false), 5000); // 5 sec popup
+      } else {
+        setShowWarning(false);
+      }
+    }, 4500);
+    return () => clearInterval(interval);
+  }, []);
+
+  const isHighRisk = drowsinessLevel === "High" && zoneRisk === "Risk Zone";
+
+  return (
+    <>
+      <div className={`drw-mini-card ${isHighRisk ? "drowsy" : ""}`} style={{ borderColor: isHighRisk ? "rgba(255,68,68,0.4)" : "rgba(0,255,136,0.12)" }}>
+        <div style={{ fontSize:9, fontFamily:"var(--font-display)", letterSpacing:3, color:"var(--color-text-dim)", marginBottom:12, textTransform:"uppercase", display:"flex", alignItems:"center", gap:8 }}>
+          <span style={{ fontSize:14 }}>🧠</span> Driver Monitoring System
+        </div>
+        
+        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", fontSize:11, fontFamily:"var(--font-primary)" }}>
+            <span style={{ color:"var(--color-text-dim)" }}>Drowsiness Level:</span>
+            <span style={{
+              padding: "2px 8px", borderRadius: "4px", background: "rgba(0,0,0,0.3)",
+              color: drowsinessLevel === "High" ? "#ff4444" : drowsinessLevel === "Medium" ? "#ffcc00" : "#00ff88",
+              fontFamily: "var(--font-mono)", fontWeight: "bold"
+            }}>{drowsinessLevel}</span>
+          </div>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", fontSize:11, fontFamily:"var(--font-primary)" }}>
+            <span style={{ color:"var(--color-text-dim)" }}>Zone Risk:</span>
+            <span style={{
+              padding: "2px 8px", borderRadius: "4px", background: "rgba(0,0,0,0.3)",
+              color: zoneRisk === "Risk Zone" ? "#ff4444" : "#00ff88",
+              fontFamily: "var(--font-mono)", fontWeight: "bold"
+            }}>{zoneRisk}</span>
+          </div>
+
+          <div style={{ marginTop:6, padding:"8px 10px", background:"rgba(0,255,136,0.04)", borderRadius:8, border:"1px solid rgba(0,255,136,0.08)", fontSize:10, color:"rgba(0,255,136,0.7)", fontFamily:"var(--font-primary)", lineHeight:1.4 }}>
+            🌱 Preventing accidents reduces resource loss and supports sustainable transport systems.
+          </div>
+        </div>
+      </div>
+
+      {showWarning && (
+        <div style={{
+          position: "fixed", top: "15%", left: "50%", transform: "translateX(-50%)",
+          background: "rgba(30, 0, 0, 0.95)", border: "2px solid #ff4444", borderRadius: "12px",
+          padding: "20px 24px", zIndex: 10000, boxShadow: "0 0 40px rgba(255, 0, 0, 0.6)",
+          textAlign: "center", animation: "cardIn 0.3s ease, drown-pulse 0.9s ease infinite",
+          backdropFilter: "blur(8px)"
+        }}>
+          <div style={{ fontSize: "20px", marginBottom: "8px", fontWeight: "bold", fontFamily: "var(--font-display)", color: "#ff4444", textTransform: "uppercase", letterSpacing: "2px" }}>
+            ⚠️ High Risk Alert
+          </div>
+          <div style={{ fontSize: "14px", color: "#ffa0a0", lineHeight: 1.5, fontFamily: "var(--font-primary)", fontWeight: 500 }}>
+            Driver fatigue detected in accident-prone zone.<br/>
+            Please take a break or stay alert.
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 function RoadSafetyPanel() {
   const tips = [
     { icon: "🪖", text: "Always wear a helmet while riding" },
@@ -566,19 +647,42 @@ export default function App() {
 
   const addLog = useCallback((msg) => setLogs((l) => [...l, { t:now(), msg }]), []);
 
-  const addNotif = useCallback((title, msg, icon, color) => {
+  const addNotif = useCallback((title, msg, icon, color, duration = 5000) => {
     const id = ++notifId.current;
     setNotifs((n) => [...n, { id, title, msg, icon, color }]);
-    setTimeout(() => setNotifs((n) => n.filter((x) => x.id !== id)), 5000);
+    setTimeout(() => setNotifs((n) => n.filter((x) => x.id !== id)), duration);
     return id;
   }, []);
 
   const dismissNotif = (id) => setNotifs((n) => n.filter((x) => x.id !== id));
 
   const playBeep = () => {
-    if (!audioCtx.current) audioCtx.current = new (window.AudioContext || window.webkitAudioContext)();
-    for (let i = 0; i < 3; i++) setTimeout(() => beep(audioCtx.current), i * 500);
+    try {
+      if (!audioCtx.current) audioCtx.current = new (window.AudioContext || window.webkitAudioContext)();
+      for (let i = 0; i < 3; i++) setTimeout(() => beep(audioCtx.current), i * 500);
+    } catch(e) {}
   };
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      playBeep();
+      addNotif(
+        "Driver Safety Assistant",
+        <div style={{ display:"flex", flexDirection:"column", gap:4, marginTop:4, fontSize:12 }}>
+          <div style={{ fontWeight:700, color:"#ffcc00", marginBottom:2 }}>⚠️ Pre-Drive Safety Check:</div>
+          <div>• Wear seatbelt</div>
+          <div>• Avoid overspeeding</div>
+          <div>• Do not use mobile while driving</div>
+          <div>• Stay alert</div>
+        </div>,
+        "🚗",
+        "green",
+        8000
+      );
+    }, 1500);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const runSimulation = useCallback((sev = severity) => {
     if (phase !== "idle") return;
@@ -791,6 +895,9 @@ export default function App() {
 
                 {/* NEW — Drowsiness monitor card */}
                 <DrowsinessMonitorCard isDrowsy={isDrowsy} />
+                
+                {/* Simulated Risk Prevention Panel */}
+                <RiskPreventionPanel />
 
                 {/* Vehicle Info */}
                 <div style={{ ...S.card("#ff3333"), animation:active?"blink 1.5s ease infinite":"none" }}>
