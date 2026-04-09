@@ -410,6 +410,95 @@ function EkgLine({ isDrowsy }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// EDUCATION & SUSTAINABILITY PANELS (visual only)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function RoadSafetyPanel() {
+  const tips = [
+    { icon: "🪖", text: "Always wear a helmet while riding" },
+    { icon: "🔒", text: "Wear seatbelt — it saves lives" },
+    { icon: "🚫", text: "Avoid overspeeding — follow speed limits" },
+    { icon: "📵", text: "Do not use mobile while driving" },
+    { icon: "🚦", text: "Always follow traffic signals" },
+    { icon: "🍺", text: "Never drink and drive" },
+    { icon: "💡", text: "Use indicators before turning" },
+  ];
+  return (
+    <div className="drw-mini-card" style={{ borderColor: "rgba(0,255,136,0.12)" }}>
+      <div style={{ fontSize:9, fontFamily:"var(--font-display)", letterSpacing:3, color:"var(--color-text-dim)", marginBottom:12, textTransform:"uppercase", display:"flex", alignItems:"center", gap:8 }}>
+        <span style={{ fontSize:14 }}>🛡️</span> Road Safety Tips
+      </div>
+      <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+        {tips.map((tip, i) => (
+          <div key={i} style={{ display:"flex", alignItems:"center", gap:10, fontSize:11, color:"var(--color-text-main)", fontFamily:"var(--font-primary)", padding:"6px 12px", background:"rgba(0,255,136,0.03)", borderRadius:8, border:"1px solid rgba(0,255,136,0.06)", transition:"all 0.3s ease", cursor:"default" }}
+            onMouseOver={e => { e.currentTarget.style.background = "rgba(0,255,136,0.07)"; e.currentTarget.style.borderColor = "rgba(0,255,136,0.18)"; e.currentTarget.style.transform = "translateX(3px)"; }}
+            onMouseOut={e => { e.currentTarget.style.background = "rgba(0,255,136,0.03)"; e.currentTarget.style.borderColor = "rgba(0,255,136,0.06)"; e.currentTarget.style.transform = "translateX(0)"; }}
+          >
+            <span style={{ fontSize:14, flexShrink:0 }}>{tip.icon}</span>
+            <span style={{ lineHeight:1.4 }}>{tip.text}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SustainabilityImpactPanel() {
+  const impacts = [
+    { icon: "⚡", text: "Reduces fatalities", color: "#00ff88" },
+    { icon: "🏙️", text: "Improves traffic efficiency", color: "#4488ff" },
+    { icon: "🌐", text: "Supports smart city systems", color: "#ffcc00" },
+    { icon: "⏱️", text: "Saves critical response time", color: "#00dd77" },
+  ];
+  return (
+    <div className="drw-mini-card" style={{ borderColor: "rgba(0,255,136,0.08)", background: "rgba(4,18,8,0.7)" }}>
+      <div style={{ fontSize:9, fontFamily:"var(--font-display)", letterSpacing:3, color:"var(--color-text-dim)", marginBottom:10, textTransform:"uppercase", display:"flex", alignItems:"center", gap:8 }}>
+        <span style={{ fontSize:14 }}>🌱</span> Sustainability Impact
+      </div>
+      <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+        {impacts.map((item, i) => (
+          <div key={i} style={{ display:"flex", alignItems:"center", gap:10, fontSize:11, color:"var(--color-text-main)", fontFamily:"var(--font-primary)", padding:"5px 10px", borderLeft:`2px solid ${item.color}`, background:"rgba(0,0,0,0.15)", borderRadius:"0 6px 6px 0", transition:"all 0.3s ease" }}
+            onMouseOver={e => { e.currentTarget.style.background = "rgba(0,255,136,0.05)"; e.currentTarget.style.paddingLeft = "14px"; }}
+            onMouseOut={e => { e.currentTarget.style.background = "rgba(0,0,0,0.15)"; e.currentTarget.style.paddingLeft = "10px"; }}
+          >
+            <span style={{ fontSize:13, flexShrink:0 }}>{item.icon}</span>
+            <span style={{ lineHeight:1.4 }}>{item.text}</span>
+          </div>
+        ))}
+      </div>
+      {/* Key metric */}
+      <div style={{ marginTop:10, padding:"8px 12px", background:"rgba(0,255,136,0.06)", borderRadius:8, border:"1px solid rgba(0,255,136,0.12)", display:"flex", alignItems:"center", gap:10 }}>
+        <span style={{ fontSize:22, fontFamily:"var(--font-display)", fontWeight:800, color:"var(--color-green)", textShadow:"0 0 12px rgba(0,255,136,0.4)" }}>35%</span>
+        <span style={{ fontSize:10, color:"var(--color-text-main)", fontFamily:"var(--font-primary)", lineHeight:1.4 }}>Avg Response Time Improved by AI-assisted dispatch</span>
+      </div>
+      <div style={{ marginTop:8, fontSize:10, color:"rgba(0,255,136,0.35)", fontFamily:"var(--font-mono)", letterSpacing:1, fontStyle:"italic", lineHeight:1.5 }}>
+        "Educating drivers. Saving lives. Building sustainable cities."
+      </div>
+    </div>
+  );
+}
+
+function GoldenHourMessage() {
+  return (
+    <div className="drw-mini-card" style={{ borderColor:"rgba(255,68,68,0.25)", background:"rgba(20,4,4,0.75)" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+        <span style={{ fontSize:22 }}>🚨</span>
+        <div style={{ fontSize:10, fontFamily:"var(--font-display)", letterSpacing:2.5, color:"#ff4444", textTransform:"uppercase" }}>Golden Hour Alert</div>
+      </div>
+      <div style={{ fontSize:13, color:"rgba(255,180,180,0.9)", lineHeight:1.75, fontFamily:"var(--font-primary)", fontWeight:600 }}>
+        "This delay could cost a life. Faster response during the <span style={{ color:"#ffcc00", fontWeight:800 }}>golden hour</span> saves lives."
+      </div>
+      <div style={{ fontSize:10, color:"rgba(200,150,150,0.6)", marginTop:10, fontFamily:"var(--font-mono)", letterSpacing:1, lineHeight:1.5 }}>
+        The first 60 minutes after traumatic injury are critical. Every second of delay matters.
+      </div>
+      <div style={{ marginTop:10, padding:"8px 12px", background:"rgba(0,255,136,0.04)", borderRadius:8, border:"1px solid rgba(0,255,136,0.08)", fontSize:11, color:"rgba(0,255,136,0.6)", fontFamily:"var(--font-primary)", lineHeight:1.5 }}>
+        💡 This system educates users about road safety and emergency response
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // MAIN APP — ALL ORIGINAL LOGIC PRESERVED EXACTLY
 // ─────────────────────────────────────────────────────────────────────────────
 export default function App() {
@@ -427,6 +516,7 @@ export default function App() {
   const [position, setPosition] = useState([18.5204, 73.8567]);
   const [blink, setBlink] = useState(true);
   const [isDrowsy, setIsDrowsy] = useState(false);
+  const [learningMode, setLearningMode] = useState(false);
 
   useEffect(() => {
     const channel = supabase
@@ -640,6 +730,21 @@ export default function App() {
           />
         ))}
         <SystemStatusBar isDrowsy={isDrowsy} ambulanceDispatched={ambulanceDispatched} policeDispatched={policeDispatched} phase={phase} />
+        {/* Quick Status Indicators */}
+        <div style={{ display:"flex", gap:10, marginLeft:"auto" }}>
+          <div style={{ padding:"5px 14px", borderRadius:8, background:"rgba(0,0,0,0.3)", border:"1px solid rgba(0,255,136,0.08)", display:"flex", alignItems:"center", gap:6 }}>
+            <span style={{ fontSize:8, fontFamily:"var(--font-mono)", letterSpacing:1.2, color:"rgba(0,255,136,0.4)" }}>PHASE</span>
+            <span style={{ fontSize:10, fontFamily:"var(--font-display)", color:phase==="idle"?"rgba(0,255,136,0.5)":phase==="confirmed"?"#ff4444":"#00ff88", letterSpacing:1 }}>{phase.toUpperCase()}</span>
+          </div>
+          <div style={{ padding:"5px 14px", borderRadius:8, background:"rgba(0,0,0,0.3)", border:"1px solid rgba(0,255,136,0.08)", display:"flex", alignItems:"center", gap:6 }}>
+            <span style={{ fontSize:8, fontFamily:"var(--font-mono)", letterSpacing:1.2, color:"rgba(0,255,136,0.4)" }}>ETA</span>
+            <span style={{ fontSize:10, fontFamily:"var(--font-display)", color:"#00dd77", letterSpacing:1 }}>{eta || "—"}</span>
+          </div>
+          <div style={{ padding:"5px 14px", borderRadius:8, background:"rgba(0,0,0,0.3)", border:"1px solid rgba(0,255,136,0.08)", display:"flex", alignItems:"center", gap:6 }}>
+            <span style={{ fontSize:8, fontFamily:"var(--font-mono)", letterSpacing:1.2, color:"rgba(0,255,136,0.4)" }}>AI</span>
+            <span style={{ fontSize:10, fontFamily:"var(--font-display)", color:aiData.confidence>80?"#ff4444":aiData.confidence>50?"#ffcc00":"#00ff88", letterSpacing:1 }}>{aiData.confidence}%</span>
+          </div>
+        </div>
       </div>
 
       <div style={{ ...S.app, flexDirection:"row" }}>
@@ -652,7 +757,7 @@ export default function App() {
             <SirenIcon active={phase==="confirmed"||phase==="responding"} />
             <div>
               <div style={S.title}>SAFEDRIVE‑AI</div>
-              <div style={{ fontSize:9, color:"rgba(0,255,136,0.3)", letterSpacing:2, fontFamily:"var(--font-mono)" }}>SYSTEM v2.4.1 — PUNE TRAFFIC CONTROL NETWORK</div>
+              <div style={{ fontSize:9, color:"rgba(0,255,136,0.3)", letterSpacing:2, fontFamily:"var(--font-mono)" }}>ROAD SAFETY EDUCATION & SMART EMERGENCY RESPONSE SYSTEM</div>
             </div>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               {phase==="idle"       && <Badge label="STANDBY"          color="gray" />}
@@ -660,6 +765,16 @@ export default function App() {
               {phase==="confirmed"  && <Badge label="ACCIDENT CONFIRMED" color="red" />}
               {phase==="responding" && <Badge label="RESPONDING"        color="green" />}
               {phase==="resolved"   && <Badge label="RESOLVED"          color="green" />}
+            </div>
+            {/* Learning Mode Toggle */}
+            <div
+              onClick={() => setLearningMode(m => !m)}
+              style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", padding:"6px 16px", borderRadius:20, border:`1px solid ${learningMode?"var(--color-green)":"rgba(255,255,255,0.08)"}`, background:learningMode?"rgba(0,255,136,0.1)":"transparent", transition:"all 0.3s ease", userSelect:"none" }}
+            >
+              <div style={{ width:28, height:14, borderRadius:7, background:learningMode?"var(--color-green)":"rgba(255,255,255,0.12)", position:"relative", transition:"all 0.3s ease" }}>
+                <div style={{ width:10, height:10, borderRadius:"50%", background:learningMode?"#001a08":"#666", position:"absolute", top:2, left:learningMode?16:2, transition:"all 0.3s ease", boxShadow:learningMode?"0 0 6px var(--color-green)":"none" }} />
+              </div>
+              <span style={{ fontSize:9, fontFamily:"var(--font-display)", letterSpacing:2, color:learningMode?"var(--color-green)":"var(--color-text-dim)", textTransform:"uppercase" }}>Learn</span>
             </div>
             <div style={S.nav}>
               <button style={S.navBtn("dashboard")}  onClick={() => setScreen("dashboard")}>Dashboard</button>
@@ -739,7 +854,7 @@ export default function App() {
                 </div>
 
                 {/* Map */}
-                <div style={{ height:300, marginTop:2, borderRadius:16, overflow:"hidden", border:"1px solid rgba(0,255,136,0.1)", boxShadow:"0 0 20px rgba(0,255,136,0.05)" }}>
+                <div style={{ height:360, marginTop:2, borderRadius:16, overflow:"hidden", border:"1px solid rgba(0,255,136,0.12)", boxShadow:"0 0 28px rgba(0,255,136,0.08)" }}>
                   <MapContainer center={position} zoom={13} style={{ height:"100%", width:"100%" }}>
                     <TileLayer
                       attribution='&copy; CARTO'
@@ -785,6 +900,10 @@ export default function App() {
                     ))}
                   </div>
                 </div>
+
+                {/* Golden Hour Advisory — shown after resolution */}
+                {phase === "resolved" && <GoldenHourMessage />}
+
               </div>
 
               {/* COL 3 — AI Panel + Dispatch */}
@@ -853,6 +972,17 @@ export default function App() {
                     <div style={{ marginTop:8, fontSize:9, fontFamily:"var(--font-mono)", color:"var(--color-text-dim)" }}>Broadcast to 47 nearby devices</div>
                   </div>
                 )}
+
+                {/* Road Safety Tips */}
+                <RoadSafetyPanel />
+
+                {/* Sustainable Smart City label + Impact */}
+                <div style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 14px", background:"rgba(0,255,136,0.05)", borderRadius:10, border:"1px solid rgba(0,255,136,0.1)" }}>
+                  <span style={{ fontSize:14 }}>🌱</span>
+                  <span style={{ fontSize:10, fontFamily:"var(--font-display)", letterSpacing:2, color:"var(--color-green)", textTransform:"uppercase" }}>Sustainable Smart City Solution</span>
+                </div>
+                <SustainabilityImpactPanel />
+
               </div>
             </div>
           )}
@@ -953,8 +1083,9 @@ export default function App() {
           )}
 
           {/* Footer */}
-          <div style={{ background:"rgba(2,8,4,0.9)", borderTop:"1px solid rgba(0,255,136,0.06)", padding:"6px 24px", display:"flex", justifyContent:"space-between", fontSize:9, fontFamily:"var(--font-mono)", color:"rgba(0,255,136,0.2)" }}>
+          <div style={{ background:"rgba(2,8,4,0.9)", borderTop:"1px solid rgba(0,255,136,0.06)", padding:"10px 24px", display:"flex", justifyContent:"space-between", alignItems:"center", fontSize:9, fontFamily:"var(--font-mono)", color:"rgba(0,255,136,0.2)", flexWrap:"wrap", gap:8 }}>
             <span style={{ letterSpacing:2 }}>SAFEDRIVE-AI — SPPU PROTOTYPE</span>
+            <span style={{ color:"rgba(0,255,136,0.22)", letterSpacing:1.2, fontStyle:"italic" }}>🌱 Educating drivers. Saving lives. Building sustainable cities.</span>
             <span style={{ color:"rgba(0,255,136,0.15)", letterSpacing:1 }}>{now()} IST ● PUNE TRAFFIC NETWORK</span>
           </div>
         </div>

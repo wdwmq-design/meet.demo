@@ -122,3 +122,15 @@ code {
 .cyber-btn:active {
   transform: scale(0.96);
 }
+
+/* Enhanced card hover polish */
+.drw-mini-card:hover {
+  border-color: rgba(0, 255, 136, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(0, 255, 136, 0.06);
+}
+
+/* Smooth transitions on all interactive cards */
+.glass-panel, .drw-mini-card {
+  transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
