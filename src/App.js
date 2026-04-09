@@ -598,6 +598,7 @@ export default function App() {
   const [blink, setBlink] = useState(true);
   const [isDrowsy, setIsDrowsy] = useState(false);
   const [learningMode, setLearningMode] = useState(false);
+  const [passengerCount, setPassengerCount] = useState(1);
 
   useEffect(() => {
     const channel = supabase
@@ -706,11 +707,11 @@ export default function App() {
       const conf = sev==="HIGH"?94:sev==="MEDIUM"?82:67;
       const inj  = sev==="HIGH"?"High Injury Risk":sev==="MEDIUM"?"Moderate Risk":"Minor Risk";
       setAiData({ confidence:conf, severity:`${sev} IMPACT`, falseAlert:"Negative", injury:inj });
-      addNotif("ACCIDENT DETECTED", `Vehicle MH14-4587 — ${sev} severity`, "⚠️", "red");
+      addNotif("ACCIDENT DETECTED", `Vehicle MH14-4587 — ${sev} severity. Passengers involved: ${passengerCount} people`, "⚠️", "red");
       playBeep();
       addLog("GPS coordinates locked: 18.5204°N, 73.8567°E");
     }, 2800);
-    setTimeout(() => { addLog("🏥 Alert sent to City Hospital"); addNotif("HOSPITAL ALERTED","Incoming trauma patient — prepare ER","🏥","red"); }, 3600);
+    setTimeout(() => { addLog(`🏥 Alert sent to City Hospital — Passengers involved: ${passengerCount} people`); addNotif("HOSPITAL ALERTED",`Incoming trauma patient — prepare ER. Passengers involved: ${passengerCount} people`,"🏥","red"); }, 3600);
     setTimeout(() => { addLog("🚔 Police Station notified"); addNotif("POLICE NOTIFIED","Accident on Pune-Bangalore Hwy","🚔","blue"); }, 4400);
     setTimeout(() => { addLog("📡 Emergency Control Center alerted"); setCommunityAlert(true); addLog("📢 Community alert broadcast: 200m radius"); }, 5200);
     setTimeout(() => {
@@ -728,7 +729,7 @@ export default function App() {
       addLog("✅ Police secured perimeter");
       addNotif("SCENE SECURED","All units on-site — situation under control","✅","green");
     }, 16000);
-  }, [phase, severity, addLog, addNotif]);
+  }, [phase, severity, addLog, addNotif, passengerCount]);
 
   const runDemo = useCallback(() => {
     if (!user.name || !user.phone) { alert("Please enter name and phone number"); return; }
@@ -749,8 +750,8 @@ export default function App() {
           let severityLevel = confidence > 90 ? "HIGH" : confidence > 85 ? "MEDIUM" : "LOW";
           setAiData({ confidence, severity:severityLevel, falseAlert:"Negative", injury:severityLevel==="HIGH"?"High Risk":severityLevel==="MEDIUM"?"Moderate Risk":"Low Risk" });
           setSeverity(severityLevel); setPhase("confirmed");
-          addLog(`✅ Accident confirmed (${severityLevel})`);
-          addNotif("Accident Detected", `Severity: ${severityLevel}`, "🚨", "red");
+          addLog(`✅ Accident confirmed (${severityLevel}) — Passengers involved: ${passengerCount} people`);
+          addNotif("Accident Detected", `Severity: ${severityLevel}. Passengers involved: ${passengerCount} people`, "🚨", "red");
           addLog(`📡 SOS sent for ${user.name} (${user.phone})`);
           speak("Accident detected. Emergency services have been notified.");
           addLog("📡 Sending SOS to emergency services...");
@@ -773,12 +774,12 @@ export default function App() {
             }
           }, 600);
           setTimeout(() => { setPoliceDispatched(true); addLog("🚓 Police notified and dispatched"); }, 2000);
-          setTimeout(() => { addLog("🏥 Hospital emergency team alerted"); setCommunityAlert(true); }, 2500);
+          setTimeout(() => { addLog(`🏥 Hospital emergency team alerted — Passengers: ${passengerCount}`); setCommunityAlert(true); }, 2500);
           setTimeout(() => { setDemoRunning(false); }, 3200);
         }, 1200);
       }, 1200);
     }, 1200);
-  }, [demoRunning, phase, addLog, addNotif, user]);
+  }, [demoRunning, phase, addLog, addNotif, user, passengerCount]);
 
   const reset = () => {
     setPhase("idle"); setLogs([]); setNotifs([]); setAmbulanceProgress(0);
@@ -833,6 +834,19 @@ export default function App() {
             onBlur={e=>e.target.style.borderColor="rgba(255,255,255,0.08)"}
           />
         ))}
+        {/* Passenger Count Selector */}
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <span style={{ fontSize:9, fontFamily:"var(--font-display)", letterSpacing:1.5, color:"var(--color-text-dim)", textTransform:"uppercase", whiteSpace:"nowrap" }}>👥 Passengers</span>
+          <select
+            value={passengerCount}
+            onChange={(e) => setPassengerCount(Number(e.target.value))}
+            style={{ padding:"8px 12px", borderRadius:8, border:"1px solid rgba(255,255,255,0.08)", background:"rgba(0,0,0,0.45)", color:"#fff", outline:"none", fontSize:13, fontFamily:"var(--font-primary)", cursor:"pointer", appearance:"none", WebkitAppearance:"none", MozAppearance:"none", backgroundImage:"url('data:image/svg+xml;utf8,<svg fill=\'%2300ff88\' viewBox=\'0 0 24 24\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M7 10l5 5 5-5z\'/></svg>')", backgroundRepeat:"no-repeat", backgroundPosition:"right 8px center", backgroundSize:"14px", paddingRight:"28px", transition:"border-color 0.3s" }}
+            onFocus={e => e.target.style.borderColor="rgba(0,255,136,0.4)"}
+            onBlur={e => e.target.style.borderColor="rgba(255,255,255,0.08)"}
+          >
+            {[1,2,3,4,5,6].map(n => <option key={n} value={n} style={{ background:"#0a1a0f", color:"#fff" }}>{n}</option>)}
+          </select>
+        </div>
         <SystemStatusBar isDrowsy={isDrowsy} ambulanceDispatched={ambulanceDispatched} policeDispatched={policeDispatched} phase={phase} />
         {/* Quick Status Indicators */}
         <div style={{ display:"flex", gap:10, marginLeft:"auto" }}>
@@ -913,6 +927,15 @@ export default function App() {
                     {messages.map((msg,i) => (
                       <p key={i} style={{ fontSize:12, color:"var(--color-green)", margin:0, fontFamily:"var(--font-mono)" }}>{msg.text}</p>
                     ))}
+                    {/* Passenger Count Display */}
+                    <div>
+                      <div style={{ fontSize:9, color:"var(--color-text-dim)", textTransform:"uppercase", letterSpacing:1.5, fontFamily:"var(--font-mono)" }}>Passengers</div>
+                      <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:3 }}>
+                        <span style={{ fontSize:18 }}>👥</span>
+                        <span style={{ fontSize:18, fontWeight:800, fontFamily:"var(--font-display)", color:"var(--color-green)", textShadow:"0 0 10px rgba(0,255,136,0.3)" }}>{passengerCount}</span>
+                        <span style={{ fontSize:10, color:"var(--color-text-dim)", fontFamily:"var(--font-primary)" }}>in vehicle</span>
+                      </div>
+                    </div>
                     <div>
                       <div style={{ fontSize:9, color:"var(--color-text-dim)", textTransform:"uppercase", letterSpacing:1.5, fontFamily:"var(--font-mono)", marginBottom:5 }}>Impact Severity</div>
                       <Badge label={active?severity:"NONE"} color={active?sevColor:"gray"} />
@@ -1112,14 +1135,24 @@ export default function App() {
                   </div>
 
                   {active ? (
+                    <>
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-                      {[["Incident ID","#ACC-2024-0372"],["Vehicle","MH14-4587"],["Location","Pune-Blore Hwy"],["Severity",severity],["Time",logs[0]?.t||now()],["Status",phase.toUpperCase()]].map(([k,v]) => (
+                      {[["Incident ID","#ACC-2024-0372"],["Vehicle","MH14-4587"],["Location","Pune-Blore Hwy"],["Severity",severity],["Time",logs[0]?.t||now()],["Status",phase.toUpperCase()],["Passengers",`${passengerCount} people`]].map(([k,v]) => (
                         <div key={k} style={{ background:"rgba(3,8,5,0.8)", borderRadius:8, padding:"8px 10px", border:"1px solid rgba(255,255,255,0.03)" }}>
                           <div style={{ fontSize:8, color:"rgba(0,255,136,0.3)", textTransform:"uppercase", letterSpacing:1.5, fontFamily:"var(--font-mono)" }}>{k}</div>
-                          <div style={{ fontSize:12, color:k==="Severity"?(severity==="HIGH"?"#ff4444":severity==="MEDIUM"?"#ffcc00":"#00ff88"):"var(--color-text-main)", fontWeight:600, marginTop:2, fontFamily:"var(--font-primary)" }}>{v}</div>
+                          <div style={{ fontSize:12, color:k==="Severity"?(severity==="HIGH"?"#ff4444":severity==="MEDIUM"?"#ffcc00":"#00ff88"):k==="Passengers"?"#ffcc00":"var(--color-text-main)", fontWeight:600, marginTop:2, fontFamily:"var(--font-primary)" }}>{v}</div>
                         </div>
                       ))}
                     </div>
+                    {/* Passenger Alert Info */}
+                    <div style={{ marginTop:10, padding:"10px 14px", background:"rgba(255,204,0,0.06)", borderRadius:10, border:"1px solid rgba(255,204,0,0.15)", display:"flex", alignItems:"center", gap:10 }}>
+                      <span style={{ fontSize:20 }}>👥</span>
+                      <div>
+                        <div style={{ fontSize:12, fontWeight:700, color:"#ffcc00", fontFamily:"var(--font-display)", letterSpacing:1 }}>Passengers involved: {passengerCount} people</div>
+                        <div style={{ fontSize:9, color:"rgba(255,204,0,0.5)", fontFamily:"var(--font-mono)", letterSpacing:1, marginTop:2 }}>This helps hospitals and ambulance teams prepare resources in advance</div>
+                      </div>
+                    </div>
+                    </>
                   ) : (
                     <div style={{ textAlign:"center", padding:20, color:"var(--color-text-dim)", fontSize:12, fontFamily:"var(--font-mono)" }}>
                       Switch to Dashboard and simulate an accident to see emergency alerts here.
@@ -1151,12 +1184,17 @@ export default function App() {
                 <div style={S.card("#00ff88")}>
                   <div style={S.cardTitle}><span>🏥</span> Nearest Hospital</div>
                   <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                    {[["Name","KEM Hospital, Pune"],["Distance","3.2 km"],["ETA Ambulance",eta||"—"],["ER Status","Available"],["Trauma Unit","Ready"]].map(([k,v]) => (
+                    {[["Name","KEM Hospital, Pune"],["Distance","3.2 km"],["ETA Ambulance",eta||"—"],["ER Status","Available"],["Trauma Unit","Ready"],["Passengers",`${passengerCount} people`]].map(([k,v]) => (
                       <div key={k} style={{ display:"flex", justifyContent:"space-between", fontSize:12, borderBottom:"1px solid rgba(0,255,136,0.06)", paddingBottom:4, fontFamily:"var(--font-primary)" }}>
                         <span style={{ color:"var(--color-text-dim)" }}>{k}</span>
-                        <span style={{ color:k==="ETA Ambulance"?"#00ff88":"var(--color-text-main)", fontWeight:600 }}>{v}</span>
+                        <span style={{ color:k==="ETA Ambulance"?"#00ff88":k==="Passengers"?"#ffcc00":"var(--color-text-main)", fontWeight:600 }}>{v}</span>
                       </div>
                     ))}
+                  </div>
+                  {/* Purpose text */}
+                  <div style={{ marginTop:10, padding:"8px 12px", background:"rgba(0,255,136,0.04)", borderRadius:8, border:"1px solid rgba(0,255,136,0.08)", fontSize:10, color:"rgba(0,255,136,0.6)", fontFamily:"var(--font-primary)", lineHeight:1.5, display:"flex", alignItems:"center", gap:8 }}>
+                    <span style={{ fontSize:14, flexShrink:0 }}>ℹ️</span>
+                    <span>This helps hospitals and ambulance teams prepare resources in advance</span>
                   </div>
                 </div>
               </div>
